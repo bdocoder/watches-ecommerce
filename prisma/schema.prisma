@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id          Int     @id @default(autoincrement())
+  description String?
+  isDeleted   Boolean @default(false)
+
+  watchCategories WatchCategory[]
+}
+
+model Customer {
+  id        Int     @id @default(autoincrement())
+  name      String
+  isDeleted Boolean @default(false)
+
+  orders WatchOrder[]
+}
+
+model WatchCategory {
+  watchId Int   @default(autoincrement())
+  watch   Watch @relation(fields: [watchId], references: [id])
+
+  categoryId Int      @default(autoincrement())
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  @@id([watchId, categoryId])
+}
+
+model WatchOrderLine {
+  id                Int     @id @default(autoincrement())
+  orderQuantity     Int
+  quantityAllocated Int
+  isDeleted         Boolean @default(false)
+
+  watchId Int
+  watches Watch @relation(fields: [watchId], references: [id])
+
+  watchOrderId Int
+  orders       WatchOrder @relation(fields: [watchOrderId], references: [id])
+}
+
+model WatchOrderShipment {
+  id             Int     @id @default(autoincrement())
+  trackingNumber String
+  isDeleted      Boolean @default(false)
+
+  orders WatchOrder[]
+}
+
+model WatchOrder {
+  id          Int     @id @default(autoincrement())
+  customerRef String
+  isDeleted   Boolean @default(false)
+
+  orderLines WatchOrderLine[]
+
+  customerId Int      @default(autoincrement())
+  customer   Customer @relation(fields: [customerId], references: [id])
+
+  orderShipmentId Int                @default(autoincrement())
+  orderShipment   WatchOrderShipment @relation(fields: [orderShipmentId], references: [id])
+}
+
+model Watch {
+  id             Int     @id @default(autoincrement())
+  price          Float
+  model          String
+  origin         String
+  serialNumber   String
+  quantityOnHand Int
+  isDeleted      Boolean @default(false)
+
+  watchCategories WatchCategory[]
+  orderLines      WatchOrderLine[]
+}
